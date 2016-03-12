@@ -2,7 +2,7 @@
 
 **Instagram** is a photo sharing app using Parse as its backend.
 
-Time spent: **4** hours spent in total (in progress...)
+Time spent: **14** hours spent in total
 
 ## User Stories
 
