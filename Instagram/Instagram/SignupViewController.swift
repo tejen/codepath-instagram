@@ -9,7 +9,7 @@
 import UIKit
 import Parse
 
-class SignupViewController: UIViewController {
+class SignupViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
     
     @IBOutlet var usernameField: UITextField!
     @IBOutlet var passwordField: UITextField!
@@ -24,12 +24,19 @@ class SignupViewController: UIViewController {
     @IBOutlet var profilePicImageView: UIImageView!
     @IBOutlet var profilePicLabel: UILabel!
     
+    @IBOutlet var activityIndicatorView: UIActivityIndicatorView!
+    
     var canSubmit = false;
+    var didSetProfilePic = false;
+    let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         // Do any additional setup after loading the view.
+        
+        usernameField.delegate = self;
+        passwordField.delegate = self;
         
         usernameField.attributedPlaceholder = NSAttributedString(string:"Username",
             attributes:[NSForegroundColorAttributeName: UIColor(white: 1, alpha: 0.7)]);
@@ -61,6 +68,10 @@ class SignupViewController: UIViewController {
         
         usernameField.addTarget(self, action: "textFieldDidChange", forControlEvents: UIControlEvents.EditingChanged);
         passwordField.addTarget(self, action: "textFieldDidChange", forControlEvents: UIControlEvents.EditingChanged);
+        
+        profilePicImageView.clipsToBounds = true;
+        profilePicImageView.layer.cornerRadius = profilePicImageView.frame.width/2;
+        
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -97,22 +108,45 @@ class SignupViewController: UIViewController {
     }
     
     @IBAction func onSignUp(sender: AnyObject) {
-        let newUser = PFUser();
+        let newUser = User();
         
         newUser.username = usernameField.text;
         newUser.password = passwordField.text;
         
+        if(didSetProfilePic) {
+            newUser.setObject(Post.generateFileFromImage(profilePicImageView.image!), forKey: "profilePicture");
+        } else {
+            newUser.setObject(Post.generateFileFromImage(UIImage(named: "Icon-Profile-Default")!), forKey: "profilePicture");
+        }
+        
+        startSubmitting();
+        
         newUser.signUpInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
             if success {
-                print("created successfully");
                 self.presentingViewController!.presentingViewController!.dismissViewControllerAnimated(true, completion: nil);
             } else {
-                let alertController = UIAlertController(title: "Login Failed", message:
+                self.stopSubmitting();
+                let alertController = UIAlertController(title: "Uh oh!", message:
                     error?.localizedDescription, preferredStyle: UIAlertControllerStyle.Alert)
-                alertController.addAction(UIAlertAction(title: "Dismiss", style: UIAlertActionStyle.Default,handler: nil));
+                alertController.addAction(UIAlertAction(title: "Try Again", style: UIAlertActionStyle.Default,handler: nil));
                 self.presentViewController(alertController, animated: true, completion: nil);
             }
         }
+    }
+    
+    func stopSubmitting() {
+        enableSubmit();
+        activityIndicatorView.alpha = 0;
+        activityIndicatorView.stopAnimating();
+        signupButton.setTitle("Sign Up", forState: .Normal);
+    }
+    
+    func startSubmitting() {
+        disableSubmit();
+        signupButton.setTitle("", forState: .Normal);
+        activityIndicatorView.startAnimating();
+        activityIndicatorView.alpha = 1;
+        
     }
     
     func enableSubmit() {
@@ -135,6 +169,37 @@ class SignupViewController: UIViewController {
             }
         }
         disableSubmit();
+    }
+    
+    @IBAction func onProfilePic(sender: AnyObject) {
+        let vc = UIImagePickerController();
+        vc.delegate = self;
+        vc.allowsEditing = true;
+        vc.sourceType = UIImagePickerControllerSourceType.PhotoLibrary;
+        presentViewController(vc, animated: true, completion: nil);
+    }
+    
+    func imagePickerController(picker: UIImagePickerController,
+        didFinishPickingMediaWithInfo info: [String : AnyObject]) {
+            // Get the image captured by the UIImagePickerController
+            let originalImage = info[UIImagePickerControllerOriginalImage] as! UIImage
+            let editedImage = info[UIImagePickerControllerEditedImage] as! UIImage
+            
+            // Do something with the images (based on your use case)
+            profilePicImageView.contentMode = .ScaleAspectFill;
+            profilePicImageView.layer.borderColor = UIColor.whiteColor().CGColor;
+            profilePicImageView.layer.borderWidth = 2.0;
+            profilePicImageView.image = editedImage;
+            
+            didSetProfilePic = true;
+            
+            // Dismiss UIImagePickerController to go back to your original view controller
+            dismissViewControllerAnimated(true, completion: nil)
+    }
+    
+    func textFieldShouldReturn(textField: UITextField) -> Bool {
+        view.endEditing(true);
+        return false;
     }
     
     /*

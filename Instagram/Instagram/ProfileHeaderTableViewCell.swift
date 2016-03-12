@@ -8,6 +8,7 @@
 
 import UIKit
 import Parse
+import AFNetworking
 
 class ProfileHeaderTableViewCell: UITableViewCell {
 
@@ -17,22 +18,42 @@ class ProfileHeaderTableViewCell: UITableViewCell {
     @IBOutlet var followersCountLabel: UILabel!
     @IBOutlet var followingCountLabel: UILabel!
     
-    var user: PFUser! {
+    @IBOutlet var dividerShadow: UIView!
+    
+    @IBOutlet var editButton: UIButton!
+    
+    var user: User! {
         didSet {
-            profileNameLabel.text = user.username;
-            followersCountLabel.text = (user.objectForKey("followersCount") as? String) ?? "0";
-            followingCountLabel.text = (user.objectForKey("followingCount") as? String) ?? "0";
-            
-            // profileImageView
-            
-            // postsCountLabel
-            
+            profileNameLabel.text = "@\(user.username!)";
+            followersCountLabel.text = String(user.followersCount!);
+            followingCountLabel.text = String(user.followingCount!);
+
+            profileImageView.clipsToBounds = true;
+            delay(1.0) { () -> () in
+                self.profileImageView.layer.cornerRadius = self.profileImageView.frame.size.width / 2;
+            }
+
+            // getDataInBackgroundWithBlock inhibits https/SSL. Using this hack instead...
+            profileImageView.setImageWithURL(user.profilePicURL!);
+
+            postsCountLabel.text = String(user.postsCount!);
         }
     }
     
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
+        
+        editButton.backgroundColor = UIColor(white: 0.93, alpha: 1.0);
+        editButton.layer.cornerRadius = 5;
+        
+        let gradientLayer = CAGradientLayer();
+        gradientLayer.frame = dividerShadow.bounds;
+        let topColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.3).CGColor as CGColorRef;
+        let bottomColor = UIColor(white: 0, alpha: 0.0).CGColor as CGColorRef;
+        gradientLayer.colors = [topColor, bottomColor];
+        gradientLayer.locations = [0.0, 1.0];
+        self.dividerShadow.layer.addSublayer(gradientLayer);
     }
 
     override func setSelected(selected: Bool, animated: Bool) {

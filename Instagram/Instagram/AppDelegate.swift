@@ -10,12 +10,32 @@ import UIKit
 import Parse
 
 @UIApplicationMain
+
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    
+    var currentTabIndex = 0;
+    var lastTabIndex = 0;
+    
+    let navigationBarBackgroundColor = UIColor(red: 18/255.0, green: 86/255.0, blue: 135/255.0, alpha: 1);
+    
+    var newPostImage: UIImage? {
+        didSet {
+            let tabBarController = self.window?.rootViewController as! TabBarController;
+            let storyboard = UIStoryboard(name: "Main", bundle: nil);
+            let vc = storyboard.instantiateViewControllerWithIdentifier("NewPostViewController") as! UINavigationController;
+            let npVc = vc.viewControllers.first as! NewPostViewController;
+            npVc.newPostImage = newPostImage;
+            tabBarController.presentViewController(vc, animated: true, completion: nil);
+        }
+    }
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+
+        Post.registerSubclass();
+        User.registerSubclass();
         
         Parse.initializeWithConfiguration(
             ParseClientConfiguration(block: { (configuration:ParseMutableClientConfiguration) -> Void in
@@ -23,7 +43,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 configuration.clientKey = "fnjiweor2389u4ty7ghrjakdpwoqwueihyt4wge"
                 configuration.server = "https://pacific-ridge-96383.herokuapp.com/parse"
             })
-        )
+        );
+        
+        UIApplication.sharedApplication().setStatusBarStyle(.LightContent, animated: true);
+        UINavigationBar.appearance().tintColor = UIColor.whiteColor();
                 
         return true
     }
@@ -51,6 +74,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
 
+}
+
+extension String
+{
+    func replace(target: String, withString: String) -> String
+    {
+        return self.stringByReplacingOccurrencesOfString(target, withString: withString, options: NSStringCompareOptions.LiteralSearch, range: nil)
+    }
 }
 
 func delay(delay:Double, closure:()->()) {

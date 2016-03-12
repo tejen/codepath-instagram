@@ -8,10 +8,19 @@
 
 import UIKit
 import Parse
+import Foundation
 
 class ProfileTableViewController: UITableViewController {
 
     @IBOutlet var profileTableView: UITableView!
+    @IBOutlet weak var cogBarButton: UIBarButtonItem!
+    
+    var user: User?;
+    var posts: [Post]?;
+    
+    var detailPost: Post?;
+    
+    var modal = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,12 +31,31 @@ class ProfileTableViewController: UITableViewController {
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
+        navigationController?.navigationBar.barTintColor = appDelegate.navigationBarBackgroundColor;
+        
         profileTableView.delegate = self;
         profileTableView.dataSource = self;
         
         profileTableView.rowHeight = UITableViewAutomaticDimension;
         profileTableView.estimatedRowHeight = 160.0;
         
+        if(user == nil) {
+            user = User.currentUser();
+        }
+        
+        user!.posts(completion: { (posts: [PFObject]?, error: NSError?) -> Void in
+            self.posts = posts as? [Post];
+            self.tableView.reloadData();
+        });
+        
+        if(modal) {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Stop, target: self, action: Selector("dismissModal"));
+        }
+    }
+    
+    func dismissModal() {
+        dismissViewControllerAnimated(true, completion: nil);
     }
 
     override func didReceiveMemoryWarning() {
@@ -44,16 +72,38 @@ class ProfileTableViewController: UITableViewController {
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return 4;
+        let cellCount = Int(1.0 + ceil(Double(posts?.count ?? 0) / 3.0));
+        return cellCount;
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         if(indexPath.row == 0) {
             let cell = tableView.dequeueReusableCellWithIdentifier("HeaderCell") as! ProfileHeaderTableViewCell;
-            cell.user = PFUser.currentUser();
+            cell.user = user;
             return cell;
         } else {
             let cell = tableView.dequeueReusableCellWithIdentifier("CollectionRowCell") as! ProfileCollectionRowTableViewCell;
+            
+            cell.profileTableController = self;
+            
+            var leftmostIndex = 3 * (indexPath.row - 1);
+            
+            cell.postOne = posts?[leftmostIndex++];
+            
+            if(leftmostIndex >= posts?.count) {
+                cell.postTwo = nil;
+                cell.postThree = nil;
+                return cell;
+            }
+            
+            cell.postTwo = posts?[leftmostIndex++];
+            
+            if(leftmostIndex >= posts?.count) {
+                cell.postThree = nil;
+                return cell;
+            }
+            
+            cell.postThree = posts?[leftmostIndex++];
             return cell;
         }
     }
@@ -93,14 +143,11 @@ class ProfileTableViewController: UITableViewController {
     }
     */
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+        if(segue.identifier == "toDetails") {
+            let dVc = segue.destinationViewController as! DetailsViewController;
+            dVc.post = detailPost;
+        }
     }
-    */
 
 }

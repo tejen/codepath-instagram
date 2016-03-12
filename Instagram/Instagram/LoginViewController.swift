@@ -9,7 +9,7 @@
 import UIKit
 import Parse
 
-class LoginViewController: UIViewController, UITextViewDelegate {
+class LoginViewController: UIViewController, UITextFieldDelegate {
 
     @IBOutlet var usernameField: UITextField!
     @IBOutlet var passwordField: UITextField!
@@ -21,12 +21,17 @@ class LoginViewController: UIViewController, UITextViewDelegate {
     @IBOutlet var signupButtonSuperview: UIView!
     @IBOutlet var loginButton: UIButton!
     
+    @IBOutlet var activityIndicatorView: UIActivityIndicatorView!
+    
     var canSubmit = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        
+        usernameField.delegate = self;
+        passwordField.delegate = self;
         
         usernameField.attributedPlaceholder = NSAttributedString(string:"Username",
             attributes:[NSForegroundColorAttributeName: UIColor(white: 1, alpha: 0.7)]);
@@ -69,10 +74,12 @@ class LoginViewController: UIViewController, UITextViewDelegate {
         if(canSubmit != true) {
             return;
         }
-        disableSubmit();
-        PFUser.logInWithUsernameInBackground(usernameField.text!, password: passwordField.text!) { (user: PFUser?, error: NSError?) -> Void in
-            self.enableSubmit();
+        startSubmitting();
+        loginButton.setTitle("", forState: .Normal);
+        
+        User.logInWithUsernameInBackground(usernameField.text!, password: passwordField.text!) { (user: PFUser?, error: NSError?) -> Void in
             if(error != nil) {
+                self.stopSubmitting();
                 print(error?.localizedDescription);
                 let alertController = UIAlertController(title: "Login Failed", message:
                     error?.localizedDescription, preferredStyle: UIAlertControllerStyle.Alert)
@@ -97,6 +104,21 @@ class LoginViewController: UIViewController, UITextViewDelegate {
                 self.performSegueWithIdentifier("toSignup", sender: self);
         }
     }
+    
+    func stopSubmitting() {
+        enableSubmit();
+        activityIndicatorView.alpha = 0;
+        activityIndicatorView.stopAnimating();
+        loginButton.setTitle("Login", forState: .Normal);
+    }
+    
+    func startSubmitting() {
+        disableSubmit();
+        loginButton.setTitle("", forState: .Normal);
+        activityIndicatorView.startAnimating();
+        activityIndicatorView.alpha = 1;
+        
+    }
 
     func enableSubmit() {
         canSubmit = true;
@@ -118,6 +140,11 @@ class LoginViewController: UIViewController, UITextViewDelegate {
             }
         }
         disableSubmit();
+    }
+    
+    func textFieldShouldReturn(textField: UITextField) -> Bool {
+        view.endEditing(true);
+        return false;
     }
 
     /*

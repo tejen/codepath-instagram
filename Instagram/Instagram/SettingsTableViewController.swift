@@ -10,6 +10,9 @@ import UIKit
 import Parse
 
 class SettingsTableViewController: UITableViewController {
+    
+    @IBOutlet weak var cellPrivateAccount: UITableViewCell!
+    @IBOutlet weak var cellSaveOriginals: UITableViewCell!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,6 +22,11 @@ class SettingsTableViewController: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
+        
+        ([cellPrivateAccount, cellSaveOriginals]).map { cell in
+            cell.accessoryView = UISwitch();
+        } // super cool !!
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -26,11 +34,28 @@ class SettingsTableViewController: UITableViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    @IBAction func onSignOut(sender: AnyObject) {
-        PFUser.logOutInBackground();
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
-        let tabBarController = appDelegate.window?.rootViewController as! TabBarController;
-        tabBarController.segueToSignIn();
+    func logOut() {
+        
+        var refreshAlert = UIAlertController(title: "Log Out", message: "Are you sure you want to Log Out of Instagram?", preferredStyle: UIAlertControllerStyle.Alert);
+        
+        refreshAlert.addAction(UIAlertAction(title: "Cancel", style: .Default, handler: nil));
+        
+        refreshAlert.addAction(UIAlertAction(title: "Logout", style: .Destructive, handler: { (action: UIAlertAction!) in
+            User.logOutInBackground();
+            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
+            let tabBarController = appDelegate.window?.rootViewController as! TabBarController;
+            tabBarController.performSegueWithIdentifier("toLogin", sender: self);
+            delay(2.0, closure: { () -> () in
+                tabBarController.selectedIndex = 0;
+            })
+        }));
+        
+        presentViewController(refreshAlert, animated: true, completion: nil);
     }
-
+    
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        if(tableView.cellForRowAtIndexPath(indexPath)?.reuseIdentifier == "LogOutCell") {
+            logOut();
+        }
+    }
 }

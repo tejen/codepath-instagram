@@ -16,7 +16,30 @@
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Background-LaunchPoster" translatesAutoresizingMaskIntoConstraints="NO" id="MY2-vr-jbt">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                            </imageView>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="MY2-vr-jbt" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="BRR-zq-ZBJ"/>
+                            <constraint firstAttribute="trailing" secondItem="MY2-vr-jbt" secondAttribute="trailing" id="JwN-pg-MtZ"/>
+                            <constraint firstItem="MY2-vr-jbt" firstAttribute="width" secondItem="Ze5-6b-2t3" secondAttribute="width" id="KxF-NY-1fm"/>
+                            <constraint firstItem="MY2-vr-jbt" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="QsU-Sf-gFg"/>
+                            <constraint firstItem="MY2-vr-jbt" firstAttribute="height" secondItem="Ze5-6b-2t3" secondAttribute="height" id="Z8c-Bd-Ig6"/>
+                            <constraint firstItem="xb3-aO-Qok" firstAttribute="top" secondItem="MY2-vr-jbt" secondAttribute="bottom" id="dPo-Go-Mwb"/>
+                            <constraint firstItem="MY2-vr-jbt" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="eNN-vu-iBM"/>
+                            <constraint firstItem="MY2-vr-jbt" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="f7p-Hy-I8Y"/>
+                        </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="JwN-pg-MtZ"/>
+                                <exclude reference="QsU-Sf-gFg"/>
+                                <exclude reference="f7p-Hy-I8Y"/>
+                                <exclude reference="dPo-Go-Mwb"/>
+                            </mask>
+                        </variation>
                     </view>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
                 </viewController>
@@ -25,4 +48,7 @@
             <point key="canvasLocation" x="53" y="375"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="Background-LaunchPoster" width="213" height="378"/>
+    </resources>
 </document>

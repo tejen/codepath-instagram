@@ -8,10 +8,108 @@
 
 import UIKit
 import Parse
+import AFNetworking
 
-class Post: NSObject {
+public class Post: PFObject, PFSubclassing {
 
-     
+    public static func parseClassName() -> String {
+        return "Post";
+    }
+    
+    private var _mediaURL: NSURL?;
+    var mediaURL: NSURL? {
+        if(_mediaURL == nil) {
+            let file = objectForKey("media") as? PFFile;
+            
+            let url = Post.getURLFromFile(file!);
+            _mediaURL = NSURL(string: url);
+        }
+        return _mediaURL;
+    }
+
+    private var _author: User?;
+    var author: User? {
+        if(_author == nil) {
+            _author = objectForKey("author") as? User;
+        }
+        return _author;
+    }
+
+    private var _caption: String?;
+    var caption: String? {
+        if(_caption == nil) {
+            _caption = objectForKey("caption") as? String;
+        }
+        return _caption;
+    }
+
+    private var _likesCount: Int?;
+    var likesCount: Int? {
+        let likes = PFQuery(className:"Like")
+        likes.whereKey("post", equalTo: self);
+        _likesCount = likes.countObjects(nil);
+        return _likesCount;
+    }
+    
+    private var _commentsCount: Int?;
+    var commentsCount: Int? {
+        let comments = PFQuery(className:"Comment")
+        comments.whereKey("post", equalTo: self);
+        _commentsCount = comments.countObjects(nil);
+        return _commentsCount;
+    }
+    
+    private var _comments: [PFObject]?;
+    var comments: [PFObject]? {
+        let query = PFQuery(className:"Comment")
+        query.whereKey("post", equalTo: self);
+        query.includeKey("user");
+        var results: [PFObject]?;
+        do {
+            results = try query.findObjects();
+        } catch(_) {
+            
+        }
+        _comments = results;
+        return _comments;
+    }
+    
+    var _liked: Bool?;
+    var liked: Bool {
+        get {
+            let likes = PFQuery(className:"Like")
+            likes.whereKey("user", equalTo: User.currentUser()!);
+            likes.whereKey("post", equalTo: self);
+            _liked = likes.countObjects(nil) > 0;
+            return _liked!;
+        }
+        set {
+            if(liked) {
+                let likes = PFQuery(className:"Like")
+                likes.whereKey("user", equalTo: User.currentUser()!);
+                likes.whereKey("post", equalTo: self);
+                likes.findObjectsInBackgroundWithBlock { (objects: [PFObject]?, error: NSError?) -> Void in
+                    if(objects != nil) {
+                        for object in objects! {
+                            object.deleteEventually();
+                        }
+                    }
+                }
+                _liked = false;
+            } else {
+                let like = PFObject(className: "Like")
+                like.setObject(User.currentUser()!, forKey: "user")
+                like.setObject(self, forKey: "post")
+                like.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
+                    if(!success) {
+                        print(error?.localizedDescription);
+                    }
+                }
+                _liked = true;
+            }
+        }
+    }
+    
      /**
      Method to add a user post to Parse (uploading image file)
      
@@ -19,20 +117,66 @@ class Post: NSObject {
      - parameter caption: Caption text input by the user
      - parameter completion: Block to be executed after save operation is complete
      */
-    class func postUserImage(image: UIImage?, withCaption caption: String?, withCompletion completion: PFBooleanResultBlock?) {
-        // Create Parse object PFObject
-        let post = PFObject(className: "Post")
+    init(image: UIImage?, var withCaption captionText: String?, withCompletion completion: PFBooleanResultBlock?) {
         
-        // Add relevant fields to the object
-        post["media"] = getPFFileFromImage(image) // PFFile column type
-        post["author"] = PFUser.currentUser() // Pointer column type that points to PFUser
-        post["caption"] = caption
-        post["likesCount"] = 0
-        post["commentsCount"] = 0
-        post["comments"] = PFObject(className: "Thread");
+        if(captionText == nil) {
+            captionText = "";
+        }
+        
+        let media = Post.generateFileFromImage(image!);
+        
+        super.init();
+        
+        self["media"] = media;
+        self["author"] = PFUser.currentUser()!; // Pointer column type that points to PFUser
+        self["caption"] = captionText!;
         
         // Save object (following function will save the object in Parse asynchronously)
-        post.saveInBackgroundWithBlock(completion)
+        saveInBackgroundWithBlock(completion);
+    }
+    
+    override public init() {
+        super.init();
+    }
+    
+    func getCachedLiked(completion: (Bool) -> ()) -> Bool {
+        if(_liked == nil) {
+            return liked;
+        }
+        delay(0.3) { () -> () in // asynchronous
+            completion(self.liked);
+        }
+        return _liked!;
+    }
+    
+    func getCachedLikesCount(completion: (Int?) -> ()) -> Int? {
+        if(_likesCount == nil) {
+            return likesCount;
+        }
+        delay(0.2) { () -> () in // asynchronous
+            completion(self.likesCount);
+        }
+        return _likesCount;
+    }
+    
+    func getCachedCommentsCount(completion: (Int?) -> ()) -> Int? {
+        if(_commentsCount == nil) {
+            return commentsCount;
+        }
+        delay(0.1) { () -> () in // asynchronous
+            completion(self.commentsCount);
+        }
+        return _commentsCount;
+    }
+    
+    func getCachedComments(completion: ([PFObject]?) -> ()) -> [PFObject]? {
+        if(_comments == nil) {
+            return comments;
+        }
+        delay(0.4) { () -> () in // asynchronous
+            completion(self.comments);
+        }
+        return _comments;
     }
     
     /**
@@ -42,18 +186,137 @@ class Post: NSObject {
      
      - returns: PFFile for the the data in the image
      */
-    class func getPFFileFromImage(image: UIImage?) -> PFFile? {
-        // check if image is not nil
-        if let image = image {
-            // get image data and check if that is not nil
-            if let imageData = UIImagePNGRepresentation(image) {
-                return PFFile(name: "image.png", data: imageData)
-            }
-        }
-        return nil
+    class func generateFileFromImage(image: UIImage) -> PFFile {
+        return PFFile(name: "image.png", data: UIImagePNGRepresentation(image)!)!;
     }
     
-    class func query(/*predicate: NSPredicate? = nil*/) -> PFQuery {
+    class func setFileToImageView(image: PFFile, imageView: UIImageView) {
+        image.getDataInBackgroundWithBlock { (imageData: NSData?, error: NSError?) -> Void in
+            if (error == nil) {
+                let image = UIImage(data:imageData!);
+                imageView.image = image;
+            }
+        }
+    }
+    
+    override public class func query(/*predicate: NSPredicate? = nil*/) -> PFQuery? {
         return PFQuery(className: "Post"/*, predicate: predicate*/);
     }
+    
+    class func getURLFromFile(file: PFFile) -> String {
+        // don't wanna make an App Transport Security exception :/
+        return file.url!.replace("http://", withString: "https://");
+    }
+
+    class func fetchPosts(offset: Int = 0, limit: Int = 20, authorConstraint: User? = nil, completion: PFQueryArrayResultBlock) -> [Post]? {
+        assert(limit <= 20);
+        assert(offset >= 0);
+        
+        let query = PFQuery(className: "Post");
+        query.limit = limit;
+        query.skip = offset;
+        query.orderByDescending("createdAt");
+        query.includeKey("author");
+        
+        if(authorConstraint != nil) {
+            query.whereKey("author", equalTo: authorConstraint!);
+        }
+        
+        var results: [PFObject]?;
+        
+        do {
+            results = try query.findObjects();
+        } catch(_) {
+            
+        }
+        
+        completion(results, nil);
+        
+        return results as! [Post]?;
+    }
+    
+    public func comment(contentText: String, block: PFBooleanResultBlock? = nil) {
+        let comment = PFObject(className: "Comment")
+        comment.setObject(User.currentUser()!, forKey: "user")
+        comment.setObject(self, forKey: "post")
+        comment.setObject(contentText, forKey: "content");
+        comment.saveInBackgroundWithBlock(block);
+    }
+    
+    class func lowestReached(unit: String, value: Double) -> Bool {
+        let value = Int(round(value));
+        switch unit {
+        case "s":
+            return value < 60;
+        case "m":
+            return value < 60;
+        case "h":
+            return value < 24;
+        case "d":
+            return value < 7;
+        case "w":
+            return value < 4;
+        default: // include "w". cannot reduce weeks
+            return true;
+        }
+    }
+    
+    class func timeSince(date: NSDate) -> String {
+        var unit = "s";
+        var timeSince = abs(date.timeIntervalSinceNow as Double); // in seconds
+        let reductionComplete = lowestReached(unit, value: timeSince);
+        
+        while(reductionComplete != true){
+            unit = "m";
+            timeSince = round(timeSince / 60);
+            if lowestReached(unit, value: timeSince) { break; }
+            
+            unit = "h";
+            timeSince = round(timeSince / 60);
+            if lowestReached(unit, value: timeSince) { break; }
+            
+            unit = "d";
+            timeSince = round(timeSince / 24);
+            if lowestReached(unit, value: timeSince) { break; }
+            
+            unit = "w";
+            timeSince = round(timeSince / 7);
+            if lowestReached(unit, value: timeSince) { break; }
+            
+            (unit, timeSince) = localizedDate(date);   break;
+        }
+        
+        let value = Int(timeSince);
+        return "\(value)\(unit)";
+    }
+    
+    class func localizedDate(date: NSDate) -> (unit: String, timeSince: Double) {
+        var unit = "/";
+        let formatter = NSDateFormatter();
+        formatter.dateFormat = "M";
+        let timeSince = Double(formatter.stringFromDate(date))!;
+        formatter.dateFormat = "d/yy";
+        unit += formatter.stringFromDate(date);
+        return (unit, timeSince);
+    }
+    
+    class func shortenNumber(var number: Double) -> String {
+        if(number > 999999999) {
+            number = number/1000000000;
+            return String(format: "%.1f", number) + "B";
+        }
+        if(number > 999999) {
+            number = number/1000000;
+            return String(format: "%.1f", number) + "M";
+        }
+        if(number > 9999) {
+            number = number/1000;
+            return String(format: "%.1f", number) + "K";
+        }
+        
+        let numberFormatter = NSNumberFormatter()
+        numberFormatter.numberStyle = .DecimalStyle
+        return numberFormatter.stringFromNumber(number)!;
+    }
+
 }
