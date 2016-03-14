@@ -19,6 +19,7 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     var isMoreDataLoading = false;
     
+    var refreshControl: UIRefreshControl!;
     var loadingMoreView: InfiniteScrollActivityView?;
     
     override func viewDidLoad() {
@@ -38,16 +39,26 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         navigationItem.titleView = imageView;
         
         // Set up Infinite Scroll loading indicator
-        let frame = CGRectMake(0, tableView.contentSize.height, tableView.bounds.size.width, InfiniteScrollActivityView.defaultHeight)
-        loadingMoreView = InfiniteScrollActivityView(frame: frame)
-        loadingMoreView!.hidden = true
-        tableView.addSubview(loadingMoreView!)
-        
+        let frame = CGRectMake(0, tableView.contentSize.height, tableView.bounds.size.width, InfiniteScrollActivityView.defaultHeight);
+        loadingMoreView = InfiniteScrollActivityView(frame: frame);
+        loadingMoreView!.hidden = true;
+        tableView.addSubview(loadingMoreView!);
         var insets = tableView.contentInset;
         insets.bottom += InfiniteScrollActivityView.defaultHeight;
         tableView.contentInset = insets
         
-        reloadTable();
+        refreshControl = UIRefreshControl();
+        refreshControl.addTarget(self, action: "onRefresh", forControlEvents: UIControlEvents.ValueChanged);
+        tableView.insertSubview(refreshControl, atIndex: 0);
+
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated);
+        
+        if((posts == nil) && (User.currentUser() != nil)) {
+            reloadTable();
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -55,8 +66,9 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         // Dispose of any resources that can be recreated.
     }
     
-    func reloadTable() {
-        Post.fetchPosts(completion: { (posts: [PFObject]?, error: NSError?) -> Void in
+    func reloadTable(append: Bool = false) {
+        
+        var completion: PFQueryArrayResultBlock = { (posts: [PFObject]?, error: NSError?) -> Void in
             self.posts = posts as? [Post];
             
             // Update flag
@@ -64,9 +76,35 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
             
             // Stop the loading indicator
             self.loadingMoreView!.stopAnimating()
-
+            
             self.tableView.reloadData();
-        });
+        }
+        
+        if(append) {
+            completion = { (posts: [PFObject]?, error: NSError?) -> Void in
+                
+                for post in posts! {
+                    self.posts?.append(post as! Post);
+                }
+                
+                // Update flag
+                self.isMoreDataLoading = false
+                
+                // Stop the loading indicator
+                self.loadingMoreView!.stopAnimating()
+                
+                if(posts?.count > 0) { // if there's even anything new to show,
+                    self.tableView.reloadData(); // then show it!
+                }
+            }
+        }
+        
+        var offset = 0;
+        if((append == true) && (posts != nil)) {
+            offset = posts!.count;
+        }
+        
+        Post.fetchPosts(offset, completion: completion);
     }
     
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
@@ -81,6 +119,16 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         let cell = tableView.dequeueReusableCellWithIdentifier("PostCell") as! PostCell;
         cell.post = posts![indexPath.section];
         cell.tableViewController = self;
+        
+        // buffer next cell
+        if(posts!.count - 1 >= indexPath.section + 1){
+            posts![indexPath.section + 1].buffer();
+        }
+        // buffer next cell
+        if(posts!.count - 1 >= indexPath.section + 2){
+            posts![indexPath.section + 2].buffer();
+        }
+        
         return cell;
     }
     
@@ -144,6 +192,13 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         return 50;
     }
     
+    func onRefresh() {
+        reloadTable();
+        delay(2, closure: {
+            self.refreshControl.endRefreshing();
+        })
+    }
+    
     func scrollViewDidScroll(scrollView: UIScrollView) {
         if(posts?.count < 5) {
             return;
@@ -163,7 +218,9 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
                 loadingMoreView?.frame = frame
                 loadingMoreView!.startAnimating()
                 
-                reloadTable();
+                delay(1.0, closure: { () -> () in
+                    self.reloadTable(true);
+                });
             }
         }
     }

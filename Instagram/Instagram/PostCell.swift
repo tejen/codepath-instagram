@@ -106,17 +106,17 @@ class PostCell: UITableViewCell {
         
         
         setCommentsCountLabel(Post.shortenNumber(Double((post?.getCachedCommentsCount({ (count: Int?) -> () in
-            self.setCommentsCountLabel(Post.shortenNumber(Double(count!)));
-        }))!)));
+            self.setCommentsCountLabel(Post.shortenNumber(Double(count!) - (self.post!.caption == "" ? 0.0 : 1.0)));
+        }))!) - (post!.caption == "" ? 0.0 : 1.0)));
         
     }
     
     func setCommentsCountLabel(commentCountOverrideValue: String? = nil) {
         var comments = commentCountOverrideValue;
         if(comments == nil && post != nil) {
-            comments = Post.shortenNumber(Double(post!.commentsCount!) - (post!.caption == "" ? 0.0 : 1.0)); // minus the caption
+            comments = Post.shortenNumber(Double(post!.commentsCount!) - (post!.caption == "" ? 0.0 : 1.0)); // minus the caption (similar to line 109)
         }
-        commentsLabel.text = (comments! == "0" ? "" : comments);
+        commentsCount.text = (comments! == "0" ? "" : comments);
     }
     
     func setLikesLabel(likeCountOverrideValue: String? = nil) {

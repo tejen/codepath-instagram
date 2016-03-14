@@ -22,6 +22,8 @@ class ProfileTableViewController: UITableViewController {
     
     var modal = false;
     
+    var readyForTableLayout = false;
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -30,6 +32,10 @@ class ProfileTableViewController: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
+        
+        if(user == nil) {
+            user = User.currentUser();
+        }
         
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
         navigationController?.navigationBar.barTintColor = appDelegate.navigationBarBackgroundColor;
@@ -40,9 +46,12 @@ class ProfileTableViewController: UITableViewController {
         profileTableView.rowHeight = UITableViewAutomaticDimension;
         profileTableView.estimatedRowHeight = 160.0;
         
-        if(user == nil) {
-            user = User.currentUser();
-        }
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated);
+        
+        readyForTableLayout = true;
         
         user!.posts(completion: { (posts: [PFObject]?, error: NSError?) -> Void in
             self.posts = posts as? [Post];
@@ -72,14 +81,20 @@ class ProfileTableViewController: UITableViewController {
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        let cellCount = Int(1.0 + ceil(Double(posts?.count ?? 0) / 3.0));
-        return cellCount;
+        
+        if(readyForTableLayout) {
+            let cellCount = Int(1.0 + ceil(Double(posts?.count ?? 0) / 3.0));
+            return cellCount;
+        }
+        
+        return 0;
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         if(indexPath.row == 0) {
             let cell = tableView.dequeueReusableCellWithIdentifier("HeaderCell") as! ProfileHeaderTableViewCell;
             cell.user = user;
+            cell.profileTableViewController = self;
             return cell;
         } else {
             let cell = tableView.dequeueReusableCellWithIdentifier("CollectionRowCell") as! ProfileCollectionRowTableViewCell;

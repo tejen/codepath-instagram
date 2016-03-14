@@ -16,6 +16,13 @@ public class Post: PFObject, PFSubclassing {
         return "Post";
     }
     
+    typealias BooleanCompletionClosure = (Bool) -> ();
+    typealias IntCompletionClosure = (Int) -> ();
+    typealias StringCompletionClosure = (String) -> ();
+    typealias ObjectsCompletionClosure = ([PFObject]?) -> ();
+    
+    static var postCache: [String: Post] = [:];
+    
     private var _mediaURL: NSURL?;
     var mediaURL: NSURL? {
         if(_mediaURL == nil) {
@@ -45,42 +52,53 @@ public class Post: PFObject, PFSubclassing {
 
     private var _likesCount: Int?;
     var likesCount: Int? {
-        let likes = PFQuery(className:"Like")
-        likes.whereKey("post", equalTo: self);
-        _likesCount = likes.countObjects(nil);
+        if(_likesCount == nil) {
+            let likes = PFQuery(className:"Like")
+            likes.whereKey("post", equalTo: self);
+            _likesCount = likes.countObjects(nil);
+        }
         return _likesCount;
     }
     
     private var _commentsCount: Int?;
     var commentsCount: Int? {
-        let comments = PFQuery(className:"Comment")
-        comments.whereKey("post", equalTo: self);
-        _commentsCount = comments.countObjects(nil);
+        if(_commentsCount == nil) {
+            let comments = PFQuery(className:"Comment")
+            comments.whereKey("post", equalTo: self);
+            _commentsCount = comments.countObjects(nil);
+        }
         return _commentsCount;
     }
     
     private var _comments: [PFObject]?;
     var comments: [PFObject]? {
-        let query = PFQuery(className:"Comment")
-        query.whereKey("post", equalTo: self);
-        query.includeKey("user");
-        var results: [PFObject]?;
-        do {
-            results = try query.findObjects();
-        } catch(_) {
-            
+        if(_comments == nil) {
+            let query = PFQuery(className:"Comment")
+            query.whereKey("post", equalTo: self);
+            query.includeKey("user");
+            var results: [PFObject]?;
+            do {
+                results = try query.findObjects();
+            } catch(_) {
+                
+            }
+            _comments = results;
         }
-        _comments = results;
         return _comments;
     }
     
     var _liked: Bool?;
     var liked: Bool {
         get {
-            let likes = PFQuery(className:"Like")
-            likes.whereKey("user", equalTo: User.currentUser()!);
-            likes.whereKey("post", equalTo: self);
-            _liked = likes.countObjects(nil) > 0;
+            if(User.currentUser() == nil) {
+                return false;
+            }
+            if(_liked == nil) {
+                let likes = PFQuery(className:"Like")
+                likes.whereKey("user", equalTo: User.currentUser()!);
+                likes.whereKey("post", equalTo: self);
+                _liked = likes.countObjects(nil) > 0;
+            }
             return _liked!;
         }
         set {
@@ -137,46 +155,85 @@ public class Post: PFObject, PFSubclassing {
     
     override public init() {
         super.init();
+        
+        if let objectId = objectId {
+            if(Post.postCache[objectId] != nil) {
+                _liked = Post.postCache[objectId]!._liked;
+                _likesCount = Post.postCache[objectId]!._likesCount;
+                _commentsCount = Post.postCache[objectId]!._commentsCount;
+                _comments = Post.postCache[objectId]!._comments;
+                _mediaURL = Post.postCache[objectId]!._mediaURL;
+            } else {
+                Post.postCache[objectId] = self;
+            }
+        }
     }
     
-    func getCachedLiked(completion: (Bool) -> ()) -> Bool {
+    func getCachedLiked(completion: BooleanCompletionClosure? = nil) -> Bool {
         if(_liked == nil) {
             return liked;
         }
-        delay(0.3) { () -> () in // asynchronous
-            completion(self.liked);
+        
+        if(completion != nil){
+            delay(0.3) { () -> () in // asynchronous
+                completion!(self.liked);
+            }
         }
+        
         return _liked!;
     }
     
-    func getCachedLikesCount(completion: (Int?) -> ()) -> Int? {
+    func getCachedLikesCount(completion: IntCompletionClosure? = nil) -> Int? {
         if(_likesCount == nil) {
             return likesCount;
         }
-        delay(0.2) { () -> () in // asynchronous
-            completion(self.likesCount);
+        
+        if(completion != nil){
+            delay(0.2) { () -> () in // asynchronous
+                completion!(self.likesCount!);
+            }
         }
+        
         return _likesCount;
     }
     
-    func getCachedCommentsCount(completion: (Int?) -> ()) -> Int? {
+    func getCachedCommentsCount(completion: IntCompletionClosure? = nil) -> Int? {
         if(_commentsCount == nil) {
             return commentsCount;
         }
-        delay(0.1) { () -> () in // asynchronous
-            completion(self.commentsCount);
+        
+        if(completion != nil) {
+            delay(0.1) { () -> () in // asynchronous
+                completion!(self.commentsCount!);
+            }
         }
+        
         return _commentsCount;
     }
     
-    func getCachedComments(completion: ([PFObject]?) -> ()) -> [PFObject]? {
+    func getCachedComments(completion: ObjectsCompletionClosure? = nil) -> [PFObject]? {
         if(_comments == nil) {
             return comments;
         }
-        delay(0.4) { () -> () in // asynchronous
-            completion(self.comments);
+        
+        if(completion != nil) {
+            delay(0.4) { () -> () in // asynchronous
+                completion!(self.comments);
+            }
         }
+        
         return _comments;
+    }
+    
+    func buffer() {
+        delay(0.1) { () -> () in
+            self.getCachedComments();
+            self.getCachedCommentsCount();
+            self.getCachedLiked();
+            self.getCachedLikesCount();
+            let ephemeralImageView = UIImageView();
+            ephemeralImageView.setImageWithURL(self.mediaURL!);
+        }
     }
     
     /**

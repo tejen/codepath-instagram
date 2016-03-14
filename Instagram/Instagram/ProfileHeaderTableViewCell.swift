@@ -22,6 +22,8 @@ class ProfileHeaderTableViewCell: UITableViewCell {
     
     @IBOutlet var editButton: UIButton!
     
+    weak var profileTableViewController: ProfileTableViewController!;
+    
     var user: User! {
         didSet {
             profileNameLabel.text = "@\(user.username!)";
@@ -54,12 +56,22 @@ class ProfileHeaderTableViewCell: UITableViewCell {
         gradientLayer.colors = [topColor, bottomColor];
         gradientLayer.locations = [0.0, 1.0];
         self.dividerShadow.layer.addSublayer(gradientLayer);
+        
+        let tap = UITapGestureRecognizer(target: self, action: Selector("onTappedProfilePic"));
+        profileImageView.userInteractionEnabled = true;
+        profileImageView.addGestureRecognizer(tap);
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
 
         // Configure the view for the selected state
+    }
+    
+    func onTappedProfilePic() {
+        if(user.username == User.currentUser()?.username) {
+            profileTableViewController.performSegueWithIdentifier("toProfilePicEditor", sender: profileTableViewController);
+        }
     }
 
 }

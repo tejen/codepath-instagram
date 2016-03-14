@@ -23,6 +23,9 @@ class CommentsTableViewController: UIViewController, UITableViewDelegate, UITabl
         tableView.delegate = self;
         tableView.dataSource = self;
         
+        tableView.rowHeight = UITableViewAutomaticDimension;
+        tableView.estimatedRowHeight = 160.0;
+        
         reloadComments();
     }
 
@@ -50,7 +53,11 @@ class CommentsTableViewController: UIViewController, UITableViewDelegate, UITabl
     }
     
     func reloadComments() {
-        comments = post?.comments;
+        comments = post?.getCachedComments({ (comments: [PFObject]?) -> () in
+            self.comments = comments;
+            self.tableView.reloadData();
+        });
+        
         tableView.reloadData();
     }
     
