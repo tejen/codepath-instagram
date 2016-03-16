@@ -30,6 +30,8 @@
 		6581EDA31C8C704E0001194C /* SignupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6581EDA21C8C704E0001194C /* SignupViewController.swift */; };
 		6581EDA71C8C824A0001194C /* TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6581EDA61C8C824A0001194C /* TabBarController.swift */; };
 		6581EDA91C8C86070001194C /* SettingsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6581EDA81C8C86070001194C /* SettingsTableViewController.swift */; };
+		658AC1F11C9804F90069C3F9 /* FollowerTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658AC1F01C9804F90069C3F9 /* FollowerTableViewController.swift */; };
+		658AC1F31C9808C60069C3F9 /* RelationshipCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658AC1F21C9808C60069C3F9 /* RelationshipCell.swift */; };
 		65975FE61C950DCC005F46BB /* ProfilePictureEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65975FE51C950DCC005F46BB /* ProfilePictureEditorViewController.swift */; };
 		65C7C68E1C923F110085CA2D /* DetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C7C68D1C923F110085CA2D /* DetailsViewController.swift */; };
 		7C47AF3FB541AD8FB2F6BB15 /* Pods_Instagram.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65C406DF40EA91E30E704DD5 /* Pods_Instagram.framework */; };
@@ -61,6 +63,8 @@
 		6581EDA21C8C704E0001194C /* SignupViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignupViewController.swift; sourceTree = "<group>"; };
 		6581EDA61C8C824A0001194C /* TabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
 		6581EDA81C8C86070001194C /* SettingsTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsTableViewController.swift; sourceTree = "<group>"; };
+		658AC1F01C9804F90069C3F9 /* FollowerTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FollowerTableViewController.swift; sourceTree = "<group>"; };
+		658AC1F21C9808C60069C3F9 /* RelationshipCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RelationshipCell.swift; sourceTree = "<group>"; };
 		65975FE51C950DCC005F46BB /* ProfilePictureEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfilePictureEditorViewController.swift; sourceTree = "<group>"; };
 		65C406DF40EA91E30E704DD5 /* Pods_Instagram.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Instagram.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65C7C68D1C923F110085CA2D /* DetailsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailsViewController.swift; sourceTree = "<group>"; };
@@ -114,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				65975FE51C950DCC005F46BB /* ProfilePictureEditorViewController.swift */,
+				658AC1F01C9804F90069C3F9 /* FollowerTableViewController.swift */,
 				657615091C941B140004E1D7 /* CommentsTableViewController.swift */,
 				65C7C68D1C923F110085CA2D /* DetailsViewController.swift */,
 				65096F4A1C8BE4CF008F250E /* LoginViewController.swift */,
@@ -132,6 +137,7 @@
 		6581ED921C8C30630001194C /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				658AC1F21C9808C60069C3F9 /* RelationshipCell.swift */,
 				6576150F1C944D260004E1D7 /* InfiniteScrollActivityView.swift */,
 				6576150D1C9435B50004E1D7 /* CommentEditorTableViewCell.swift */,
 				6576150B1C941B300004E1D7 /* CommentCell.swift */,
@@ -318,6 +324,7 @@
 				65166CF81C8BE2750007F4AF /* AppDelegate.swift in Sources */,
 				6581EDA11C8C56AC0001194C /* ProfileCollectionRowTableViewCell.swift in Sources */,
 				651A33BA1C918D4100DC60DB /* HomeViewController.swift in Sources */,
+				658AC1F11C9804F90069C3F9 /* FollowerTableViewController.swift in Sources */,
 				652854C21C903B9A005C61EB /* NewPostViewController.swift in Sources */,
 				6581ED991C8C50520001194C /* ProfileTableViewController.swift in Sources */,
 				6576150A1C941B140004E1D7 /* CommentsTableViewController.swift in Sources */,
@@ -329,6 +336,7 @@
 				65C7C68E1C923F110085CA2D /* DetailsViewController.swift in Sources */,
 				657615101C944D260004E1D7 /* InfiniteScrollActivityView.swift in Sources */,
 				6558B70D1C8E218400E037ED /* User.swift in Sources */,
+				658AC1F31C9808C60069C3F9 /* RelationshipCell.swift in Sources */,
 				651A33B81C9186E900DC60DB /* PreviewViewController.swift in Sources */,
 				6581EDA91C8C86070001194C /* SettingsTableViewController.swift in Sources */,
 				651A33BC1C9196C300DC60DB /* PostCell.swift in Sources */,

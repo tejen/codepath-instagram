@@ -52,7 +52,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated);
         
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
         let tabBarController = appDelegate.window?.rootViewController as! TabBarController;
         tabBarController.view.alpha = 1.0;
         

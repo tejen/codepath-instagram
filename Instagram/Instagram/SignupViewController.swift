@@ -28,7 +28,6 @@ class SignupViewController: UIViewController, UIImagePickerControllerDelegate, U
     
     var canSubmit = false;
     var didSetProfilePic = false;
-    let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -182,7 +181,7 @@ class SignupViewController: UIViewController, UIImagePickerControllerDelegate, U
     func imagePickerController(picker: UIImagePickerController,
         didFinishPickingMediaWithInfo info: [String : AnyObject]) {
             // Get the image captured by the UIImagePickerController
-            let originalImage = info[UIImagePickerControllerOriginalImage] as! UIImage
+//            let originalImage = info[UIImagePickerControllerOriginalImage] as! UIImage
             let editedImage = info[UIImagePickerControllerEditedImage] as! UIImage
             
             // Do something with the images (based on your use case)

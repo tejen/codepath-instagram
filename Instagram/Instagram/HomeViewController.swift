@@ -118,7 +118,8 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("PostCell") as! PostCell;
         cell.post = posts![indexPath.section];
-        cell.tableViewController = self;
+        cell.tableViewController1 = self;
+        cell.indexPathSection = indexPath.section;
         
         // buffer next cell
         if(posts!.count - 1 >= indexPath.section + 1){
@@ -178,14 +179,9 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         let authorUsernameLabel = sender.view as! UILabel;
         authorUsernameLabel.textColor = UIColor.lightGrayColor();
         
-        let storyboard = UIStoryboard(name: "Main", bundle: nil);
-        let pNc = storyboard.instantiateViewControllerWithIdentifier("ProfileNavigationController") as! UINavigationController;
-        let pVc = pNc.viewControllers.first as! ProfileTableViewController;
+        let pVc = storyboard!.instantiateViewControllerWithIdentifier("ProfileTableViewController") as! ProfileTableViewController;
         pVc.user = User.getUserByUsername(authorUsernameLabel.text!);
-        pVc.modal = true;
-        
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
-        appDelegate.window?.rootViewController!.presentViewController(pNc, animated: true, completion: nil);
+        navigationController?.pushViewController(pVc, animated: true);
     }
     
     func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -229,6 +225,7 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         if(segue.identifier == "toComments") {
             let vc = segue.destinationViewController as! CommentsTableViewController;
             vc.post = inspectPostComments;
+            vc.parentCell = sender as! PostCell;
         }
     }
 }

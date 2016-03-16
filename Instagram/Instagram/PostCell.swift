@@ -15,6 +15,10 @@ class PostCell: UITableViewCell {
     @IBOutlet weak var captionLabel: UILabel!
     @IBOutlet weak var commentsLabel: UILabel!
     
+    @IBOutlet weak var heartIcon: UIImageView!
+    @IBOutlet weak var heartIconWidthConstraint: NSLayoutConstraint!
+    @IBOutlet weak var heartIconHeightConstraint: NSLayoutConstraint!
+    
     @IBOutlet weak var favoriteButton: DOFavoriteButton!
     @IBOutlet weak var commentButton: UIButton!
     
@@ -23,7 +27,20 @@ class PostCell: UITableViewCell {
     
     @IBOutlet weak var commentsLabelHeightConstraint: NSLayoutConstraint!
     
-    weak var tableViewController: HomeViewController?;
+    // I could improve this by just having one variable instead of two, and its variable type could be a superclass of HomeViewController and DetailsViewController. In the interest of time, not implementing as such.
+    var useTableView2 = false;
+    weak var tableViewController1: HomeViewController? {
+        didSet {
+            useTableView2 = false;
+        }
+    }
+    weak var tableViewController2: DetailsViewController? {
+        didSet {
+            useTableView2 = true;
+        }
+    }
+    
+    var indexPathSection: Int?;
     
     var loadingComments = false;
     
@@ -55,9 +72,32 @@ class PostCell: UITableViewCell {
         super.awakeFromNib()
         
         // Initialization code
-        let tapGestureRecognizer = UILongPressGestureRecognizer(target:self, action:Selector("openComments"));
-        tapGestureRecognizer.minimumPressDuration = 0.001;
-        commentsCount.addGestureRecognizer(tapGestureRecognizer);
+        let tapGestureRecognizerA = UILongPressGestureRecognizer(target:self, action:Selector("openLikes"));
+        tapGestureRecognizerA.minimumPressDuration = 0.25;
+        likesCount.addGestureRecognizer(tapGestureRecognizerA);
+        let tapGestureRecognizerB = UILongPressGestureRecognizer(target:self, action:Selector("openLikes"));
+        tapGestureRecognizerB.minimumPressDuration = 0.25;
+        favoriteButton.addGestureRecognizer(tapGestureRecognizerB);
+        
+        let tapGestureRecognizer1 = UILongPressGestureRecognizer(target:self, action:Selector("openComments"));
+        tapGestureRecognizer1.minimumPressDuration = 0.001;
+        commentsCount.addGestureRecognizer(tapGestureRecognizer1);
+        let tapGestureRecognizer2 = UILongPressGestureRecognizer(target:self, action:Selector("openComments"));
+        tapGestureRecognizer2.minimumPressDuration = 0.001;
+        commentsLabel.addGestureRecognizer(tapGestureRecognizer2);
+        let tapGestureRecognizer3 = UILongPressGestureRecognizer(target:self, action:Selector("openComments"));
+        tapGestureRecognizer3.minimumPressDuration = 0.001;
+        captionLabel.addGestureRecognizer(tapGestureRecognizer3);
+        
+        let longPressGestureRecognizer = UILongPressGestureRecognizer(target:self, action:Selector("openPreview"));
+        longPressGestureRecognizer.minimumPressDuration = 0.25;
+        postImageView.userInteractionEnabled = true;
+        postImageView.addGestureRecognizer(longPressGestureRecognizer);
+        
+        let doubleTapGestureRecognizer = UITapGestureRecognizer(target: self, action: Selector("onDoubleTap"));
+        doubleTapGestureRecognizer.numberOfTapsRequired = 2;
+        postImageView.addGestureRecognizer(doubleTapGestureRecognizer);
+        doubleTapGestureRecognizer.requireGestureRecognizerToFail(longPressGestureRecognizer);
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
@@ -127,6 +167,18 @@ class PostCell: UITableViewCell {
         likesCount.text = (likes! == "0" ? "" : likes);
     }
     
+    func openLikes() {
+        let fVc = storyboard.instantiateViewControllerWithIdentifier("FollowerTableViewController") as! FollowerTableViewController;
+        fVc.inspect = .Likers;
+        fVc.post = post;
+        if(useTableView2) {
+            tableViewController2?.navigationController?.pushViewController(fVc, animated: true);
+        } else {
+            tableViewController1?.navigationController?.pushViewController(fVc, animated: true);
+        }
+        
+    }
+    
     func openComments() {
         if(loadingComments) {
             return;
@@ -139,17 +191,59 @@ class PostCell: UITableViewCell {
         
         UIView.animateWithDuration(0.05) { () -> Void in
             self.commentsCount.alpha = 0.25;
+            self.captionLabel.alpha = 0.25;
+            self.commentsLabel.alpha = 0.25;
         }
         delay(0.2) { () -> () in
             UIView.animateWithDuration(0.2) { () -> Void in
                 self.commentsCount.alpha = 1;
+                self.captionLabel.alpha = 1;
+                self.commentsLabel.alpha = 1;
             }
             
-            self.tableViewController?.inspectPostComments = self.post;
-            self.tableViewController?.performSegueWithIdentifier("toComments", sender: self);
+            if(self.useTableView2) {
+                self.tableViewController2?.inspectPostComments = self.post;
+                self.tableViewController2?.performSegueWithIdentifier("toComments", sender: self);
+            } else {
+                self.tableViewController1?.inspectPostComments = self.post;
+                self.tableViewController1?.performSegueWithIdentifier("toComments", sender: self);
+            }
+        }
+    }
+    
+    func openPreview() {
+        print("opening preview");
+        let pNc = storyboard.instantiateViewControllerWithIdentifier("PreviewNavigationController") as! UINavigationController;
+        let pVc = pNc.viewControllers.first as! PreviewViewController;
+        pVc.image = postImageView.image;
+        if(useTableView2) {
+            tableViewController2?.presentViewController(pNc, animated: true, completion: nil);
+        } else {
+            tableViewController1?.presentViewController(pNc, animated: true, completion: nil);
+        }
+    }
+    
+    func onDoubleTap() {
+        if(!favoriteButton.selected) {
+            heartIcon.alpha = 0;
+            self.heartIconWidthConstraint.constant = 128;
+            self.heartIconHeightConstraint.constant = 128;
+            
+            UIView.animateWithDuration(0.25, animations: { () -> Void in
+                self.heartIcon.alpha = 1;
+                super.layoutIfNeeded();
+                }, completion: { (success: Bool) -> Void in
+                    UIView.animateWithDuration(0.25, animations: { () -> Void in
+                        self.heartIcon.alpha = 0;
+                        }, completion: { (success: Bool) -> Void in
+                            self.heartIconWidthConstraint.constant = 64;
+                            self.heartIconHeightConstraint.constant = 64;
+                            super.layoutIfNeeded();
+                    })
+            });
         }
         
-        
+        onLikeButton(self);
     }
     
     @IBAction func onLikeButton(sender: AnyObject) {
@@ -163,6 +257,7 @@ class PostCell: UITableViewCell {
             setLikesLabel(String(Int(likeCount!)! - 1));
         } else {
             favoriteButton.select();
+            
             post?.liked = true;
             var likeCount = likesCount.text;
             if(likeCount == nil || likeCount == "") {
@@ -174,6 +269,21 @@ class PostCell: UITableViewCell {
     
     @IBAction func onCommentButton(sender: AnyObject) {
         openComments();
+    }
+    
+    func refreshSuperviewPost(var newPost: Post? = nil) {
+        print("refreshing post...");
+        
+        if(newPost == nil) {
+            newPost = Post.cache(post!.objectId!);
+        }
+        
+        post = newPost;
+        if(useTableView2) {
+            tableViewController2?.posts![indexPathSection!] = post!;
+        } else {
+            tableViewController1?.posts![indexPathSection!] = post!;
+        }
     }
     
 }

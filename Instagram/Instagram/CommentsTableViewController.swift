@@ -13,6 +13,8 @@ class CommentsTableViewController: UIViewController, UITableViewDelegate, UITabl
     
     @IBOutlet weak var tableView: UITableView!
     
+    weak var parentCell: PostCell!;
+    
     var post: Post?;
     var comments: [PFObject]?;
     
@@ -25,6 +27,10 @@ class CommentsTableViewController: UIViewController, UITableViewDelegate, UITabl
         
         tableView.rowHeight = UITableViewAutomaticDimension;
         tableView.estimatedRowHeight = 160.0;
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated);
         
         reloadComments();
     }
@@ -36,6 +42,32 @@ class CommentsTableViewController: UIViewController, UITableViewDelegate, UITabl
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return (comments == nil ? 1 : comments!.count + 1);
+    }
+    
+    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        if(comments == nil || comments!.count - 1 < indexPath.row) {
+            return false;
+        }
+        
+        if((comments![indexPath.row]["user"] as! User).objectId == User.currentUser()!.objectId) {
+            return true;
+        }
+        return false;
+    }
+    
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if (editingStyle == UITableViewCellEditingStyle.Delete) {
+            let obId = comments![indexPath.row].objectId;
+            let comment = PFObject(withoutDataWithClassName: "Comment", objectId: obId);
+            Post.postCache[post!.objectId!] = nil;
+            comment.deleteInBackgroundWithBlock({ (success: Bool, error: NSError?) -> Void in
+                self.comments?.removeAtIndex(indexPath.row);
+                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade);
+                print("deleting...");
+                self.parentCell.tableViewController1?.posts = nil;
+                self.parentCell.tableViewController1?.reloadTable();
+            });
+        }
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
@@ -52,13 +84,19 @@ class CommentsTableViewController: UIViewController, UITableViewDelegate, UITabl
         }
     }
     
-    func reloadComments() {
+    func reloadComments(refreshSuperviewTable: Bool = false) {
+        post = Post.cache(post!.objectId!);
         comments = post?.getCachedComments({ (comments: [PFObject]?) -> () in
             self.comments = comments;
             self.tableView.reloadData();
         });
         
         tableView.reloadData();
+        
+        if(refreshSuperviewTable) {
+            parentCell.tableViewController1?.posts = nil;
+//            Post.postCache = [:];
+        }
     }
     
     /*

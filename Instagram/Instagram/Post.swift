@@ -169,6 +169,18 @@ public class Post: PFObject, PFSubclassing {
         }
     }
     
+    class func cache(objectId: String) -> Post? {
+        Post.postCache[objectId] = nil;
+        Post.postCache[objectId] = PFObject(withoutDataWithClassName: "Post", objectId: objectId) as? Post;
+        do {
+            try Post.postCache[objectId]!.fetch();
+            try (Post.postCache[objectId]!["author"] as! PFUser).fetch();
+        } catch(_) {
+            
+        }
+        return Post.postCache[objectId];
+    }
+    
     func getCachedLiked(completion: BooleanCompletionClosure? = nil) -> Bool {
         if(_liked == nil) {
             return liked;
@@ -264,7 +276,7 @@ public class Post: PFObject, PFSubclassing {
         // don't wanna make an App Transport Security exception :/
         return file.url!.replace("http://", withString: "https://");
     }
-
+    
     class func fetchPosts(offset: Int = 0, limit: Int = 20, authorConstraint: User? = nil, completion: PFQueryArrayResultBlock) -> [Post]? {
         assert(limit <= 20);
         assert(offset >= 0);

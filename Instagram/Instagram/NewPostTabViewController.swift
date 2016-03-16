@@ -22,7 +22,6 @@ class NewPostTabViewController: UIViewController, UIImagePickerControllerDelegat
     }
     
     func revertSelectedIndex() {
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
         let tVc = tabBarController as! TabBarController;
         let newTabIndex = (appDelegate.currentTabIndex == 2 ? appDelegate.lastTabIndex : appDelegate.currentTabIndex)
         tVc.selectedIndex = newTabIndex;
@@ -77,8 +76,7 @@ class NewPostTabViewController: UIViewController, UIImagePickerControllerDelegat
     
     func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
         picker.dismissViewControllerAnimated(true, completion: nil);
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
-        appDelegate.newPostImage = info[UIImagePickerControllerEditedImage] as! UIImage;
+        appDelegate.newPostImage = info[UIImagePickerControllerEditedImage] as? UIImage;
     }
 
     /*

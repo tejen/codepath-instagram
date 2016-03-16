@@ -52,12 +52,13 @@ class CommentEditorTableViewCell: UITableViewCell {
                 self.activityIndicator.alpha = 1;
             });
             post!.comment(commentText) { (success: Bool, error: NSError?) -> Void in
-                self.commentTableViewController!.reloadComments();
+                Post.postCache[self.post!.objectId!] = nil;
+                self.commentTableViewController!.reloadComments(true);
                 delay(0.5, closure: { () -> () in
                     self.activityIndicator.stopAnimating();
                     self.sendButton.hidden = false;
-                    self.commentField.userInteractionEnabled = true;
                     self.commentField.text = "";
+                    self.commentField.userInteractionEnabled = true;
                     self.commentField.textColor = UIColor.blackColor();
                     UIView.animateWithDuration(0.5, animations: { () -> Void in
                         self.activityIndicator.alpha = 0;

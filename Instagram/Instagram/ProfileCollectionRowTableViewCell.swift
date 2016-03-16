@@ -88,17 +88,44 @@ class ProfileCollectionRowTableViewCell: UITableViewCell {
     
     func onTappedLeftPhoto() {
         profileTableController?.detailPost = postOne;
-        profileTableController?.performSegueWithIdentifier("toDetails", sender: profileTableController);
+        
+        UIView.animateWithDuration(0.05) { () -> Void in
+            self.imageOne.alpha = 0.25;
+        }
+        delay(0.2) { () -> () in
+            UIView.animateWithDuration(0.2) { () -> Void in
+                self.imageOne.alpha = 1;
+            }
+            self.profileTableController?.performSegueWithIdentifier("toDetails", sender: self.profileTableController);
+        }
     }
     
     func onTappedCenterPhoto() {
         profileTableController?.detailPost = postTwo;
-        profileTableController?.performSegueWithIdentifier("toDetails", sender: profileTableController);
+
+        UIView.animateWithDuration(0.05) { () -> Void in
+            self.imageTwo.alpha = 0.25;
+        }
+        delay(0.2) { () -> () in
+            UIView.animateWithDuration(0.2) { () -> Void in
+                self.imageTwo.alpha = 1;
+            }
+            self.profileTableController?.performSegueWithIdentifier("toDetails", sender: self.profileTableController);
+        }
     }
     
     func onTappedRightPhoto() {
         profileTableController?.detailPost = postThree;
-        profileTableController?.performSegueWithIdentifier("toDetails", sender: profileTableController);
+
+        UIView.animateWithDuration(0.05) { () -> Void in
+            self.imageThree.alpha = 0.25;
+        }
+        delay(0.2) { () -> () in
+            UIView.animateWithDuration(0.2) { () -> Void in
+                self.imageThree.alpha = 1;
+            }
+            self.profileTableController?.performSegueWithIdentifier("toDetails", sender: self.profileTableController);
+        }
     }
 
 }

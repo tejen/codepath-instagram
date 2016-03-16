@@ -23,7 +23,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var newPostImage: UIImage? {
         didSet {
             let tabBarController = self.window?.rootViewController as! TabBarController;
-            let storyboard = UIStoryboard(name: "Main", bundle: nil);
             let vc = storyboard.instantiateViewControllerWithIdentifier("NewPostViewController") as! UINavigationController;
             let npVc = vc.viewControllers.first as! NewPostViewController;
             npVc.newPostImage = newPostImage;
@@ -33,6 +32,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+        
+        let sharedCache = NSURLCache(memoryCapacity: 8 * 1024 * 1024, // 8mb
+            diskCapacity: 100 * 1024 * 1024, // 100mb
+            diskPath:nil);
+        NSURLCache.setSharedURLCache(sharedCache);
 
         Post.registerSubclass();
         User.registerSubclass();
@@ -92,3 +96,10 @@ func delay(delay:Double, closure:()->()) {
         ),
         dispatch_get_main_queue(), closure)
 }
+
+let InstagramGreenColor = UIColor(red: 102/255.0, green: 189/255.0, blue: 43/255.0, alpha: 1);
+let InstagramNeutralColor = UIColor(white: 0.93, alpha: 1.0);
+let InstagramActionableColor = UIColor(red: 64/255.0, green: 144/255.0, blue: 219/255.0, alpha: 1);
+
+let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
+let storyboard = UIStoryboard(name: "Main", bundle: nil);

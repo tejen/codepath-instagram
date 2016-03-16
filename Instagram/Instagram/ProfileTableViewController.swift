@@ -21,11 +21,34 @@ class ProfileTableViewController: UITableViewController {
     var detailPost: Post?;
     
     var modal = false;
+    var stallerView: UIView!;
     
     var readyForTableLayout = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        var height = UIScreen.mainScreen().bounds.height;
+        var width = UIScreen.mainScreen().bounds.width;
+        let x = (width / 2) - (height / 8);
+        let y = (height / 2) - (height / 8);
+        height = height / 4;
+        width = height;
+        
+        stallerView = UIView(frame: CGRect(x: x, y: y, width: width, height: height) );
+        stallerView.layer.cornerRadius = 10;
+        stallerView.backgroundColor = UIColor(white: 0, alpha: 0.75);
+        stallerView.alpha = 0;
+        let stallSpinner = UIActivityIndicatorView(activityIndicatorStyle: .WhiteLarge);
+        stallerView.addSubview(stallSpinner);
+        stallSpinner.startAnimating();
+        stallSpinner.bounds.origin = CGPoint(x: -height/2 + (stallSpinner.bounds.width/2), y: -height/2 + (stallSpinner.bounds.height/2));
+        self.navigationController!.view.addSubview(self.stallerView);
+        delay(0.25) { () -> () in
+            UIView.animateWithDuration(0.25) { () -> Void in
+                self.stallerView.alpha = 1;
+            }
+        }
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -33,11 +56,6 @@ class ProfileTableViewController: UITableViewController {
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
-        if(user == nil) {
-            user = User.currentUser();
-        }
-        
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
         navigationController?.navigationBar.barTintColor = appDelegate.navigationBarBackgroundColor;
         
         profileTableView.delegate = self;
@@ -48,19 +66,38 @@ class ProfileTableViewController: UITableViewController {
         
     }
     
-    override func viewDidAppear(animated: Bool) {
-        super.viewDidAppear(animated);
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated);
         
         readyForTableLayout = true;
+        
+        if(user == nil) {
+            if(User.currentUser() == nil) {
+                readyForTableLayout = false;
+                tableView.reloadData();
+                return; // logged out
+            }
+            user = User.currentUser();
+        }
         
         user!.posts(completion: { (posts: [PFObject]?, error: NSError?) -> Void in
             self.posts = posts as? [Post];
             self.tableView.reloadData();
+            UIView.animateWithDuration(0.5, animations: { () -> Void in
+                self.stallerView.alpha = 0;
+            }, completion: { (IdkWtfThisIs: Bool) -> Void in
+                self.stallerView.removeFromSuperview();
+            })
         });
         
         if(modal) {
             navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Stop, target: self, action: Selector("dismissModal"));
+        } else if(user!.objectId != User.currentUser()!.objectId) {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "", style: UIBarButtonItemStyle.Plain, target: self, action: nil);
+        } else {
+            navigationItem.rightBarButtonItem?.enabled = true;
         }
+        
     }
     
     func dismissModal() {
@@ -161,7 +198,21 @@ class ProfileTableViewController: UITableViewController {
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if(segue.identifier == "toDetails") {
             let dVc = segue.destinationViewController as! DetailsViewController;
-            dVc.post = detailPost;
+            dVc.posts = [detailPost!];
+        }
+        if(segue.identifier == "toProfilePicEditor") {
+            let pVc = segue.destinationViewController as! ProfilePictureEditorViewController;
+            pVc.profileHeaderTableView = sender as! ProfileHeaderTableViewCell;
+        }
+        if(segue.identifier == "toFollowers") {
+            let fVc = segue.destinationViewController as! FollowerTableViewController;
+            fVc.inspect = .Followers;
+            fVc.user = user;
+        }
+        if(segue.identifier == "toFollowing") {
+            let fVc = segue.destinationViewController as! FollowerTableViewController;
+            fVc.inspect = .Following;
+            fVc.user = user;
         }
     }
 

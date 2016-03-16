@@ -40,8 +40,6 @@ class TabBarController: UITabBarController {
         let bgView = UIView(frame: CGRectMake(itemWidth * CGFloat(itemIndex), 0, itemWidth, tabBar.frame.height));
         bgView.backgroundColor = bgColor;
         tabBar.insertSubview(bgView, atIndex: 0);
-
-        
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -50,8 +48,6 @@ class TabBarController: UITabBarController {
         if(User.currentUser() == nil) {
             self.performSegueWithIdentifier("toLogin", sender: self);
         }
-        
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
         
         childViewControllers.map { (vc: UIViewController) in
             (vc as! UINavigationController).navigationBar.barTintColor = appDelegate.navigationBarBackgroundColor;
@@ -64,7 +60,6 @@ class TabBarController: UITabBarController {
     }
     
     override func tabBar(tabBar: UITabBar, didSelectItem item: UITabBarItem) {
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
         let tabBarController = appDelegate.window?.rootViewController as! TabBarController;
         if(tabBarController.selectedIndex != 2) { // if not Create Post tab
             appDelegate.lastTabIndex = appDelegate.currentTabIndex;
@@ -79,7 +74,6 @@ class TabBarController: UITabBarController {
         
         // Check if the view about to load is the second tab and if it is, load the modal form instead.
 //        if viewController == newController {
-//            let storyboard = UIStoryboard(name: "ModalController", bundle: nil);
 //            let vc = storyboard.instantiateInitialViewController() as? UIViewController;
 //            
 //            presentViewController(vc!, animated: true, completion: nil);
@@ -90,15 +84,19 @@ class TabBarController: UITabBarController {
 //        }
 //    }
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
+        if(segue.identifier == "toLogin") {
+            Post.postCache = [:];
+            let pNc = childViewControllers.last as! UINavigationController;
+            let pVc = pNc.childViewControllers.first as! ProfileTableViewController;
+            pVc.user = nil;
+            delay(1.0, closure: { () -> () in
+                pNc.popToRootViewControllerAnimated(true);
+            });
+        }
     }
-    */
 
 }
 
@@ -107,7 +105,7 @@ extension UIImage {
         UIGraphicsBeginImageContextWithOptions(size, false, 0)
         color.setFill()
         UIRectFill(CGRectMake(0, 0, size.width, size.height))
-        var image = UIGraphicsGetImageFromCurrentImageContext()
+        let image = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         return image
     }

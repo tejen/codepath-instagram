@@ -35,9 +35,12 @@ class CommentCell: UITableViewCell {
         super.awakeFromNib()
         // Initialization code
         
-        let tapGestureRecognizer = UILongPressGestureRecognizer(target:self, action:Selector("openProfile"));
-        tapGestureRecognizer.minimumPressDuration = 0.001;
+        let tapGestureRecognizer = UITapGestureRecognizer(target:self, action:Selector("openProfile"));
+        usernameLabel.userInteractionEnabled = true;
         usernameLabel.addGestureRecognizer(tapGestureRecognizer);
+        let tapGestureRecognizer2 = UITapGestureRecognizer(target:self, action:Selector("openProfile"));
+        profilePicView.userInteractionEnabled = true;
+        profilePicView.addGestureRecognizer(tapGestureRecognizer2);
         
         profilePicView.clipsToBounds = true;
         profilePicView.layer.cornerRadius = 15;
@@ -61,13 +64,14 @@ class CommentCell: UITableViewCell {
         
         UIView.animateWithDuration(0.05) { () -> Void in
             self.usernameLabel.alpha = 0.25;
+            self.profilePicView.alpha = 0.25;
         }
         delay(0.2) { () -> () in
             UIView.animateWithDuration(0.2) { () -> Void in
                 self.usernameLabel.alpha = 1;
+                self.profilePicView.alpha = 1;
             }
             
-            let storyboard = UIStoryboard(name: "Main", bundle: nil);
             let vc = storyboard.instantiateViewControllerWithIdentifier("ProfileTableViewController") as! ProfileTableViewController;
             vc.user = User.getUserByUsername(self.usernameLabel.text!);
             self.commentsTableController?.navigationController?.pushViewController(vc, animated: true);

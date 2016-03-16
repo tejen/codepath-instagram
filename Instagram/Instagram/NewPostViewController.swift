@@ -108,8 +108,6 @@ class NewPostViewController: UIViewController, UITextViewDelegate {
             captionText = "";
         }
         
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
-        
         newPost = Post(image: newPostImage, withCaption: captionText) { (success: Bool, error: NSError?) -> Void in
             
             let captionText = self.textView.text;
@@ -117,7 +115,6 @@ class NewPostViewController: UIViewController, UITextViewDelegate {
                 self.newPost?.comment(captionText);
             }
             
-            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate;
             let tabBarController = appDelegate.window?.rootViewController as! TabBarController;
             tabBarController.selectedIndex = 0;
             let nVc = tabBarController.viewControllers?.first as! UINavigationController;
