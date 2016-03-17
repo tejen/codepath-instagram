@@ -28,6 +28,7 @@ class PostCell: UITableViewCell {
     @IBOutlet weak var commentsLabelHeightConstraint: NSLayoutConstraint!
     
     // I could improve this by just having one variable instead of two, and its variable type could be a superclass of HomeViewController and DetailsViewController. In the interest of time, not implementing as such.
+    // I've done such superclassing before, in https://github.com/tejen/codepath-twitter/blob/master/Twitter/Twitter/ , where TweetCell was a parent class of TweetCompactCell and TweetExtendedCell.
     var useTableView2 = false;
     weak var tableViewController1: HomeViewController? {
         didSet {
@@ -72,12 +73,17 @@ class PostCell: UITableViewCell {
         super.awakeFromNib()
         
         // Initialization code
-        let tapGestureRecognizerA = UILongPressGestureRecognizer(target:self, action:Selector("openLikes"));
-        tapGestureRecognizerA.minimumPressDuration = 0.25;
-        likesCount.addGestureRecognizer(tapGestureRecognizerA);
-        let tapGestureRecognizerB = UILongPressGestureRecognizer(target:self, action:Selector("openLikes"));
-        tapGestureRecognizerB.minimumPressDuration = 0.25;
-        favoriteButton.addGestureRecognizer(tapGestureRecognizerB);
+        let tapGestureRecognizerA = UITapGestureRecognizer(target: self, action: "onLikeButton:");
+        favoriteButton.addGestureRecognizer(tapGestureRecognizerA);
+        let holdGestureRecognizerA = UILongPressGestureRecognizer(target:self, action:Selector("openLikes"));
+        holdGestureRecognizerA.minimumPressDuration = 0.25;
+        favoriteButton.addGestureRecognizer(holdGestureRecognizerA);
+        tapGestureRecognizerA.requireGestureRecognizerToFail(holdGestureRecognizerA);
+        
+        let holdGestureRecognizerB = UILongPressGestureRecognizer(target:self, action:Selector("openLikes"));
+        holdGestureRecognizerB.minimumPressDuration = 0.25;
+        likesCount.userInteractionEnabled = true;
+        likesCount.addGestureRecognizer(holdGestureRecognizerB);
         
         let tapGestureRecognizer1 = UILongPressGestureRecognizer(target:self, action:Selector("openComments"));
         tapGestureRecognizer1.minimumPressDuration = 0.001;
@@ -167,7 +173,18 @@ class PostCell: UITableViewCell {
         likesCount.text = (likes! == "0" ? "" : likes);
     }
     
+    var justOpenedLikes = false {
+        didSet {
+            delay(1.0) { () -> () in
+                self.justOpenedLikes = false;
+            }
+        }
+    }
     func openLikes() {
+        if(justOpenedLikes) {
+            return;
+        }
+        justOpenedLikes = true;
         let fVc = storyboard.instantiateViewControllerWithIdentifier("FollowerTableViewController") as! FollowerTableViewController;
         fVc.inspect = .Likers;
         fVc.post = post;
