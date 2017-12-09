@@ -25,18 +25,32 @@ The following **optional** features are implemented:
 
 The following **additional** features are implemented:
 
-- [ ] List anything else that you can get done to improve the app functionality!
+- [X] Design is a clone of Instagram as of 2016
+- [X] Double-click a photo to like it
+- [X] Long-hold a photo to open it in fullscreen
+- [X] Long-hold a photo to expand it
+- [X] Pull-to-Refresh
+- [X] Infinite Scrolling
+- [X] After changing your Profile Photo
+- [X] Users can Follow each other. Changes propagate to all Follower Count labels app-wide without user needing to refresh anything.
+- [X] Users can Comment on each other's photos and swipe to delete Comments
+- [X] Tap and hold a Heart icon to view a list of other users that Liked the post
+
 
 Please list two areas of the assignment you'd like to **discuss further with your peers** during the next class (examples include better ways to implement something, how to extend your app in certain ways, etc):
 
-1. 
-2. 
+1. Formatted and non-formatted text inline in the same Label using Attributed Strings (such as in the Comments under each Post in the Home tab, where usernames are formatted differently from the body of the comments that follow them)
+2. Wrapping Labels around ImageViews (such as in the Comments under each Post in the Home tab, where the Comments are not able to wrap around the Heart and Comment icons next to them)
 
 ## Video Walkthrough 
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/link/to/your/gif/file.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+**click image below to view video walkthrough**
+
+[<img src='http://img.tejen.net/f1d01413e7eeb6fa67b93809285b8b88.png' width='300px' title='Video Walkthrough' width='' alt='Video Walkthrough' />](https://youtu.be/oNIoa-xz4wI)
+
+([click here](https://youtu.be/oNIoa-xz4wI) to view demo in HD on YouTube)
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
